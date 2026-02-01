@@ -82,13 +82,13 @@ export default function Home() {
         </div>
 
         <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
+           initial={{ opacity: 0, x: 20 }}
+           animate={{ opacity: 1, x: 0 }}
+           transition={{ delay: 0.3 }}
           className="hero-illustration"
         >
           <div className="illustration-placeholder">
-            <Users size={120} strokeWidth={1} />
+            <Users size={0} strokeWidth={0} />
           </div>
         </motion.div>
       </section>

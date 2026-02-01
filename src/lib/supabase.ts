@@ -34,6 +34,32 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     },
   },
 })
+supabase.ts
+// import { createClient } from '@supabase/supabase-js'
+
+// const supabaseUrl = import.meta.env.VITE_SUPABASE_URL!
+// const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY!
+
+// export function createSupabaseClient(
+//   getToken?: () => Promise<string | null>
+// ) {
+//   return createClient(supabaseUrl, supabaseAnonKey, {
+//     global: {
+//       fetch: async (url, options = {}) => {
+//         const token = getToken ? await getToken() : null
+
+//         return fetch(url, {
+//           ...options,
+//           headers: {
+//             ...options.headers,
+//             ...(token ? { Authorization: `Bearer ${token}` } : {}),
+//           },
+//         })
+//       },
+//     },
+//   })
+// }
+
 
 /**
  * Helper function to ensure user exists in public.users

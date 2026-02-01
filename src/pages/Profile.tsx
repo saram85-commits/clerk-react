@@ -204,9 +204,9 @@ export default function Profile() {
                 value={editingProfile?.role || 'mentee'}
                 onChange={(e) => setEditingProfile({ ...editingProfile, role: e.target.value })}
               >
-                <option value="mentee">Mentee (Student)</option>
+                <option value="mentee">Mentee (Student / New Comer)</option>
                 <option value="mentor">Mentor</option>
-                <option value="both">Both</option>
+                
               </select>
             ) : (
               <p className="form-value">{profile?.role === 'mentee' ? 'Student' : profile?.role === 'mentor' ? 'Mentor' : 'Both'}</p>
