@@ -258,7 +258,7 @@ export default function Dashboard() {
             </button>
           ))}
         </div>
-      </motion.section>
+      </motion.div>
 
       {/* Mentors Grid */}
       <motion.section className="mentors-section" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
