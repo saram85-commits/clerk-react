@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { SignedIn, SignedOut } from '@clerk/clerk-react'
 import { motion } from 'framer-motion'
@@ -8,6 +7,7 @@ import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
 import { useEnsureUser } from './hooks/useEnsureUser'
 import NavBar from './components/NavBar'
+import './App.css'
 
 function App() {
   useEnsureUser()
@@ -16,7 +16,7 @@ function App() {
     <BrowserRouter>
       <NavBar />
 
-      <motion.main style={{ padding: '1rem' }} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
         <Routes>
           <Route
             path="/"
@@ -50,6 +50,8 @@ function App() {
               </SignedIn>
             }
           />
+
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </motion.main>
     </BrowserRouter>

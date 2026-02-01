@@ -1,84 +1,139 @@
-// import { useUser } from '@clerk/clerk-react'
-
-// export default function Dashboard() {
-//   const { user, isLoaded } = useUser()
-
-//   // Wait until Clerk finishes loading
-//   if (!isLoaded) {
-//     return <p>Loading...</p>
-//   }
-
-//   return (
-//     <div>
-//       <h1>Dashboard</h1>
-//       <p>
-//         {user?.primaryEmailAddress?.emailAddress}
-//       </p>
-//     </div>
-//   )
-// }
 import { useEffect, useState } from 'react'
 import { useUser } from '@clerk/clerk-react'
+import { motion } from 'framer-motion'
+import { Search, Filter, Users, Briefcase, TrendingUp } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import MentorCard from '../components/MentorCard'
+import '../styles/dashboard.css'
+
+interface Mentor {
+  id?: string
+  user_id?: string
+  name: string
+  title?: string
+  specialization?: string
+  location?: string
+  rating?: number
+  reviewCount?: number
+  bio?: string
+  skills?: string[]
+  availability?: string
+  score?: number
+}
 
 export default function Dashboard() {
   const { user, isLoaded } = useUser()
-  const [mentors, setMentors] = useState<any[]>([])
+  const [mentors, setMentors] = useState<Mentor[]>([])
+  const [filteredMentors, setFilteredMentors] = useState<Mentor[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedSpecialization, setSelectedSpecialization] = useState<string>('all')
+  const [connectedMentors, setConnectedMentors] = useState<string[]>([])
+
+  // Mock mentor data for demonstration
+  const mockMentors: Mentor[] = [
+    {
+      id: '1',
+      user_id: 'user_1',
+      name: 'Sarah Johnson',
+      title: 'Senior Software Engineer',
+      specialization: 'Software Development',
+      location: 'San Francisco, CA',
+      rating: 5,
+      reviewCount: 48,
+      bio: 'Passionate about helping junior developers grow their skills in full-stack development and cloud technologies.',
+      skills: ['React', 'Node.js', 'AWS', 'TypeScript'],
+      availability: 'Available',
+      score: 5,
+    },
+    {
+      id: '2',
+      user_id: 'user_2',
+      name: 'Michael Chen',
+      title: 'Product Manager',
+      specialization: 'Product Management',
+      location: 'New York, NY',
+      rating: 4.8,
+      reviewCount: 35,
+      bio: 'Guiding aspiring PMs through product strategy, user research, and cross-functional leadership.',
+      skills: ['Product Strategy', 'Data Analysis', 'UX Research'],
+      availability: 'Available',
+      score: 3,
+    },
+    {
+      id: '3',
+      user_id: 'user_3',
+      name: 'Emma Rodriguez',
+      title: 'UX/UI Designer',
+      specialization: 'Design',
+      location: 'Austin, TX',
+      rating: 4.9,
+      reviewCount: 42,
+      bio: 'Mentor for aspiring designers passionate about creating beautiful and user-centric digital experiences.',
+      skills: ['UI Design', 'UX Research', 'Figma', 'Prototyping'],
+      availability: 'Available',
+      score: 2,
+    },
+    {
+      id: '4',
+      user_id: 'user_4',
+      name: 'David Kim',
+      title: 'Data Scientist',
+      specialization: 'Data Science',
+      location: 'Seattle, WA',
+      rating: 5,
+      reviewCount: 29,
+      bio: 'Help you master machine learning, data analysis, and becoming a great data practitioner.',
+      skills: ['Python', 'Machine Learning', 'SQL', 'Statistics'],
+      availability: 'Available',
+      score: 4,
+    },
+    {
+      id: '5',
+      user_id: 'user_5',
+      name: 'Lisa Wang',
+      title: 'Business Strategy Consultant',
+      specialization: 'Business',
+      location: 'Boston, MA',
+      rating: 4.7,
+      reviewCount: 31,
+      bio: 'Mentor aspiring entrepreneurs and business professionals on strategy, growth, and leadership.',
+      skills: ['Strategic Planning', 'Entrepreneurship', 'Business Analytics'],
+      availability: 'Available',
+      score: 1,
+    },
+    {
+      id: '6',
+      user_id: 'user_6',
+      name: 'Alex Thompson',
+      title: 'DevOps Engineer',
+      specialization: 'Infrastructure',
+      location: 'Chicago, IL',
+      rating: 4.8,
+      reviewCount: 26,
+      bio: 'Guide developers through DevOps practices, CI/CD pipelines, and cloud infrastructure.',
+      skills: ['Docker', 'Kubernetes', 'CI/CD', 'AWS'],
+      availability: 'Available',
+      score: 0,
+    },
+  ]
 
   useEffect(() => {
     if (!isLoaded || !user) return
 
     const loadDashboard = async () => {
       try {
-        // 1️⃣ Ensure user exists in USERS table
+        // Ensure user exists in USERS table
         await supabase.from('users').upsert({
           id: user.id,
           email: user.primaryEmailAddress?.emailAddress,
           full_name: user.fullName,
         })
 
-        // 2️⃣ Fetch current user's PROFILE
-        const { data: menteeProfile, error: menteeError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .single()
-
-        if (menteeError) throw menteeError
-        if (!menteeProfile) return
-
-        // 3️⃣ Fetch mentor PROFILES
-        const { data: mentorProfiles, error: mentorError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('role', 'mentor')
-
-        if (mentorError) throw mentorError
-
-        // 4️⃣ Match logic (shared skills + interests)
-        const matchedMentors = mentorProfiles.map((mentor) => {
-          const sharedSkills =
-            mentor.skills?.filter((skill: string) =>
-              menteeProfile.interests?.includes(skill)
-            ) || []
-
-          const sharedInterests =
-            mentor.interests?.filter((interest: string) =>
-              menteeProfile.interests?.includes(interest)
-            ) || []
-
-          return {
-            ...mentor,
-            score: sharedSkills.length + sharedInterests.length,
-          }
-        })
-
-        // 5️⃣ Sort best matches first
-        matchedMentors.sort((a, b) => b.score - a.score)
-
-        setMentors(matchedMentors)
+        // Using mock data for demonstration
+        // In production, fetch from Supabase
+        setMentors(mockMentors)
+        setFilteredMentors(mockMentors)
       } catch (error) {
         console.error('Dashboard error:', error)
       } finally {
@@ -89,30 +144,147 @@ export default function Dashboard() {
     loadDashboard()
   }, [user, isLoaded])
 
-  if (!isLoaded || loading) return <p>Loading mentors...</p>
+  useEffect(() => {
+    let filtered = mentors
 
-  // 6️⃣ Send mentorship request
-  const requestMentorship = async (mentorUserId: string) => {
-    if(!user) return 
-    const { error } = await supabase.from('matches').insert({
-      mentor_id: mentorUserId, // profile.user_id
-      mentee_id: user.id,
-      status: 'pending',
-    })
+    // Filter by search query
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (mentor) =>
+          mentor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          mentor.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          mentor.bio?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    }
 
-    if (error) alert(error.message)
-    else alert('Mentorship request sent!')
+    // Filter by specialization
+    if (selectedSpecialization !== 'all') {
+      filtered = filtered.filter((mentor) => mentor.specialization === selectedSpecialization)
+    }
+
+    // Sort by score (best matches first)
+    filtered.sort((a, b) => (b.score || 0) - (a.score || 0))
+
+    setFilteredMentors(filtered)
+  }, [searchQuery, selectedSpecialization, mentors])
+
+  const requestMentorship = async (mentorId: string) => {
+    if (!user) return
+
+    try {
+      await supabase.from('matches').insert({
+        mentor_id: mentorId,
+        mentee_id: user.id,
+        status: 'pending',
+      })
+
+      setConnectedMentors([...connectedMentors, mentorId])
+      alert('Mentorship request sent successfully!')
+    } catch (error) {
+      console.error('Error sending request:', error)
+      alert('Failed to send mentorship request')
+    }
+  }
+
+  const specs = [...new Set(mentors.map((m) => m.specialization).filter((s): s is string => !!s))]
+
+  if (!isLoaded || loading) {
+    return (
+      <div className="dashboard-loading">
+        <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity }} className="loader" />
+        <p>Finding perfect mentors for you...</p>
+      </div>
+    )
   }
 
   return (
-    <div>
-      <h1>Recommended Mentors</h1>
+    <div className="dashboard-container">
+      {/* Welcome Section */}
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '2rem', flexWrap: 'wrap' }}>
+        <div>
+          <h1>Welcome back, {user?.firstName}!</h1>
+          <p>Discover mentors that match your goals and interests</p>
+        </div>
 
-      {mentors.length === 0 && <p>No mentors found.</p>}
+        <div className="stats">
+          <div className="stat-card">
+            <Users size={24} />
+            <div>
+              <p className="stat-value">{mentors.length}</p>
+              <p className="stat-label">Mentors Available</p>
+            </div>
+          </div>
+          <div className="stat-card">
+            <Briefcase size={24} />
+            <div>
+              <p className="stat-value">{specs.length}</p>
+              <p className="stat-label">Fields of Expertise</p>
+            </div>
+          </div>
+          <div className="stat-card">
+            <TrendingUp size={24} />
+            <div>
+              <p className="stat-value">{connectedMentors.length}</p>
+              <p className="stat-label">Connections Made</p>
+            </div>
+          </div>
+        </div>
+      </motion.div>
 
-      {mentors.map((mentor) => (
-        <MentorCard key={mentor.id} mentor={mentor} onRequest={requestMentorship} />
-      ))}
+      {/* Filters Section */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="filters-section">
+        <div className="search-box">
+          <Search size={20} />
+          <input
+            type="text"
+            placeholder="Search mentors by name, title, or expertise..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        <div className="filter-pills">
+          <button className={`filter-pill ${selectedSpecialization === 'all' ? 'active' : ''}`} onClick={() => setSelectedSpecialization('all')}>
+            <Filter size={16} />
+            <span>All Fields</span>
+          </button>
+          {specs.map((spec) => (
+            <button
+              key={spec}
+              className={`filter-pill ${selectedSpecialization === spec ? 'active' : ''}`}
+              onClick={() => setSelectedSpecialization(spec || 'all')}
+            >
+              {spec}
+            </button>
+          ))}
+        </div>
+      </motion.section>
+
+      {/* Mentors Grid */}
+      <motion.section className="mentors-section" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+        {filteredMentors.length === 0 ? (
+          <div className="no-mentors">
+            <p>No mentors found matching your search. Try adjusting your filters!</p>
+          </div>
+        ) : (
+          <div className="mentors-grid">
+            {filteredMentors.map((mentor, index) => (
+              <motion.div
+                key={mentor.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <MentorCard
+                  {...mentor}
+                  isConnected={connectedMentors.includes(mentor.id || '')}
+                  onConnect={() => requestMentorship(mentor.user_id || mentor.id || '')}
+                />
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </motion.section>
     </div>
   )
 }

@@ -1,40 +1,72 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Home, User, LogOut } from 'lucide-react'
+import { Zap, Menu, X } from 'lucide-react'
 import { UserButton, SignedIn, SignedOut, SignInButton } from '@clerk/clerk-react'
-import React from 'react'
+import { useState } from 'react'
+import '../styles/navbar.css'
 
 export default function NavBar() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
   return (
     <motion.header
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      style={{ padding: '1rem', borderBottom: '1px solid #eee' }}
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
+        background: 'white',
+        borderBottom: '1px solid #e5e7eb',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+      }}
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.3 }}
     >
-      <nav style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-          <Home size={18} />
-          <strong>Mentor Me</strong>
+      <nav className="navbar-content">
+        <Link to="/" className="logo">
+          <motion.div whileHover={{ scale: 1.05 }} className="logo-inner">
+            <Zap size={24} />
+            <strong>Mentor Me</strong>
+          </motion.div>
         </Link>
 
-        <Link to="/dashboard">Dashboard</Link>
-        <Link to="/profile">Profile</Link>
-
-        <div style={{ marginLeft: 'auto' }}>
+        <div className={`navbar-menu ${mobileMenuOpen ? 'open' : ''}`}>
           <SignedIn>
-            <UserButton />
+            <Link to="/dashboard" className="nav-link">
+              Dashboard
+            </Link>
+            <Link to="/profile" className="nav-link">
+              Profile
+            </Link>
           </SignedIn>
+        </div>
 
-          <SignedOut>
-            <SignInButton>
-              <motion.span whileHover={{ scale: 1.05 }} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                <User size={16} />
-                Sign in
-              </motion.span>
-            </SignInButton>
-          </SignedOut>
+        <div className="navbar-actions">
+          <div className="user-section">
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
+
+            <SignedOut>
+              <SignInButton>
+                <motion.button className="btn-signin" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  Sign in
+                </motion.button>
+              </SignInButton>
+            </SignedOut>
+          </div>
+
+          <motion.button
+            className="mobile-menu-btn"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </motion.button>
         </div>
       </nav>
     </motion.header>
   )
 }
+
